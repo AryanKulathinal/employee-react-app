@@ -1,5 +1,5 @@
 // src/components/EmployeeList.tsx
-import React from 'react';
+import React, { useState } from 'react';
 
 import { Link, useNavigate } from 'react-router-dom';
 import { Employee } from './Employee';
@@ -20,10 +20,64 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ employees, onDeleteEmployee
   const handleAddEmployee = () => {
     navigate(`/`); // Assuming the AddEmployee component is rendered on the root `/`
   };
+
+  const [locationFilter, setLocationFilter] = useState<string>('');
+  const [dateFilter, setDateFilter] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  // Handle filtering by location
+  const handleLocationFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocationFilter(e.target.value);
+  };
+
+  // Handle filtering by date
+  const handleDateFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDateFilter(e.target.value);
+  };
+
+  // Handle sorting by name
+  const handleSortByName = () => {
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+  };
+
+  // Apply filters and sorting
+  const filteredAndSortedEmployees = employees
+    .filter((employee) => {
+      const matchesLocation = employee.location.toLowerCase().includes(locationFilter.toLowerCase());
+      const matchesDate = dateFilter === '' || employee.dateOfJoining === dateFilter;
+      return matchesLocation && matchesDate;
+    })
+    .sort((a, b) => {
+      if (sortOrder === 'asc') {
+        return a.name.localeCompare(b.name);
+      } else {
+        return b.name.localeCompare(a.name);
+      }
+    });
+    
   return (
     <div>
       <h2>Employee List</h2>
       <button onClick={handleAddEmployee}>Add Employee</button> {/* Add Employee button */}
+            
+      {/* Filter section */}
+      <div className="filter-section">
+        <input
+          type="text"
+          placeholder="Filter by Location"
+          value={locationFilter}
+          onChange={handleLocationFilter}
+        />
+        <input
+          type="date"
+          placeholder="Filter by Date"
+          value={dateFilter}
+          onChange={handleDateFilter}
+        />
+        <button onClick={handleSortByName}>
+          Sort by Name ({sortOrder === 'asc' ? 'Ascending' : 'Descending'})
+        </button>
+      </div>
       <table className="employee-table">
         <thead>
           <tr>
@@ -41,7 +95,7 @@ const EmployeeList: React.FC<EmployeeListProps> = ({ employees, onDeleteEmployee
           </tr>
         </thead>
         <tbody>
-          {employees.map((employee) => (
+          {filteredAndSortedEmployees.map((employee) => (
             <tr key={employee.id}>
               <td>{employee.name}</td>
               <td>{employee.email}</td>
